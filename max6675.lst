@@ -1,0 +1,102 @@
+C51 COMPILER V9.60.7.0   MAX6675                                                           03/12/2025 11:27:44 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAX6675
+OBJECT MODULE PLACED IN ..\OBJ\max6675.obj
+COMPILER INVOKED BY: D:\usr\bin\Keil_v5\C51\BIN\C51.EXE ..\HARDWARE\max6675\max6675.c LARGE OPTIMIZE(9,SIZE) BROWSE INCD
+                    -IR(..\FWLib\include;..\SYSTEM\init;..\SYSTEM\delay;..\SYSTEM\uart;..\USER;..\HARDWARE\led;..\HARDWARE\18b20;..\HARDWARE\
+                    -max6675;..\HARDWARE\max31855;..\HARDWARE\max31856) DEBUG OBJECTEXTEND PRINT(..\OBJ\max6675.lst) OBJECT(..\OBJ\max6675.ob
+                    -j)
+
+line level    source
+
+   1          #include "max6675.h"
+   2          
+   3          void MAX6675_Init(void)
+   4          {
+   5   1          // 初始化GPIO
+   6   1          GPIO_InitTypeDef GPIO_InitStructure;
+   7   1          
+   8   1          GPIO_InitStructure.Mode = GPIO_OUT_PP;
+   9   1          GPIO_InitStructure.Pin = GPIO_PIN_CS_MAX6675;
+  10   1          GPIO_Inilize(GPIO_CS_MAX6675, &GPIO_InitStructure);
+  11   1          
+  12   1          GPIO_InitStructure.Mode = GPIO_OUT_PP;
+  13   1          GPIO_InitStructure.Pin = GPIO_PIN_SCK_MAX6675;
+  14   1          GPIO_Inilize(GPIO_SCK_MAX6675, &GPIO_InitStructure);
+  15   1          
+  16   1          GPIO_InitStructure.Mode = GPIO_HighZ;
+  17   1          GPIO_InitStructure.Pin = GPIO_PIN_MISO_MAX6675;
+  18   1          GPIO_Inilize(GPIO_MISO_MAX6675, &GPIO_InitStructure);
+  19   1           
+  20   1          CS_MAX6675 = 1;                     // 初始化CS为高电平
+  21   1          SCK_MAX6675 = 0;                    // 初始化SCK为低电平
+  22   1          
+  23   1          delay_us(2);                        // 等待初始化电平稳定，CS、SCK 高电平稳定
+  24   1      }
+  25          
+  26          unsigned int MAX6675_Read(void)
+  27          {
+  28   1          unsigned char i;
+  29   1          unsigned int raw = 0;
+  30   1          
+  31   1          CS_MAX6675 = 0;                     // 拉低CS
+  32   1          MAX6675_delay();                    // 延迟最少100ns，此阶段包括tCSS、tDV
+  33   1          
+  34   1          for (i = 0; i < 16; i++)            // 一次for循环至少164*2=328ns，即大致3.1MHz，小于4.3MHz
+  35   1          {
+  36   2              SCK_MAX6675 = 1;                // 拉高SCK
+  37   2              MAX6675_delay();                // 延迟最少100ns，此阶段包括tCH
+  38   2              
+  39   2              raw <<= 1;                      // 逻辑左移    
+  40   2              
+  41   2              if (MISO_MAX6675 == 1)
+  42   2                  raw |= 0x01;
+  43   2              
+  44   2              SCK_MAX6675 = 0;                // 拉低SCK
+  45   2              MAX6675_delay();                // 延迟最少100ns，此阶段包括tCL和tDO
+  46   2          }
+  47   1          
+  48   1          CS_MAX6675 = 1;                     // 拉高CS
+  49   1          MAX6675_delay();                    // 延迟最少100ns，此阶段包括tTR
+  50   1          
+  51   1          return raw;
+  52   1      }
+C51 COMPILER V9.60.7.0   MAX6675                                                           03/12/2025 11:27:44 PAGE 2   
+
+  53          
+  54          float Convert_To_Temperature(unsigned int raw)
+  55          {
+  56   1          if (raw & 0x04)                     // 检查是否开路故障
+  57   1              return -1;
+  58   1          
+  59   1          raw >>= 3;                          // 逻辑右移，取出温度数据
+  60   1          
+  61   1          return raw * 0.25;                  // 转换实际温度
+  62   1      }
+  63          
+  64          void MAX6675_delay(void)
+  65          {
+  66   1          /* STC8H系列单片机，指定频率位24MHz
+  67   1             此频率下，执行一个机器指令大致需要41ns
+  68   1             此函数除去函数调用等其他必要开销，最少延迟4 * 41 = 164ns
+  69   1          */
+  70   1          _nop_();                            // 执行一个空指令    
+  71   1          _nop_();
+  72   1          _nop_();
+  73   1          _nop_();
+  74   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    190    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----       5
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

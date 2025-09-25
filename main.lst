@@ -1,0 +1,59 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              04/21/2025 14:18:37 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN ..\OBJ\main.obj
+COMPILER INVOKED BY: D:\usr\bin\Keil_v5\C51\BIN\C51.EXE main.c LARGE OPTIMIZE(9,SIZE) BROWSE INCDIR(..\FWLib\include;..\
+                    -SYSTEM\init;..\SYSTEM\delay;..\SYSTEM\uart;..\USER;..\HARDWARE\led;..\HARDWARE\18b20;..\HARDWARE\max31856) DEBUG OBJECTE
+                    -XTEND PRINT(..\OBJ\main.lst) OBJECT(..\OBJ\main.obj)
+
+line level    source
+
+   1          #include  "init.h"
+   2          
+   3          unsigned char messages[200];
+   4          
+   5          void main(void)
+   6          {
+   7   1          float hot_temp = 0, cold_temp = 0, ds18b20_temp = 0;
+   8   1          
+   9   1              init();
+  10   1          Led_Init();
+  11   1          uart1_init(115200);
+  12   1      
+  13   1          MAX31856_Init();
+  14   1          ds18b20_IO_init();
+  15   1          
+  16   1              while(1)
+  17   1              {
+  18   2              MAX31856_TriggerOneShot();
+  19   2              delay_ms(500);
+  20   2              hot_temp = MAX31856_ReadLinearizedTemp();
+  21   2              cold_temp = MAX31856_ReadColdJunctionTemp();
+  22   2              ds18b20_temp = ds18b20_read_temperture();
+  23   2              
+  24   2              if (MAX31856_AnalyzeFault())
+  25   2              {
+  26   3                  sprintf(messages, "热端温度: %.2f ℃\n冷端温度: %.2f ℃\n", hot_temp, cold_temp);
+  27   3                  PrintString1(messages);
+  28   3              }
+  29   2              sprintf(messages, "DS18B20 温度: %.2f ℃\n", ds18b20_temp);
+  30   2              PrintString1(messages);
+  31   2              
+  32   2              Led_Toggle();
+  33   2              }
+  34   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    187    ----
+   CONSTANT SIZE    =     60    ----
+   XDATA SIZE       =    200      12
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

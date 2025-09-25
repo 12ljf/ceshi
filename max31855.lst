@@ -1,0 +1,91 @@
+C51 COMPILER V9.60.7.0   MAX31855                                                          03/12/2025 11:27:44 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAX31855
+OBJECT MODULE PLACED IN ..\OBJ\max31855.obj
+COMPILER INVOKED BY: D:\usr\bin\Keil_v5\C51\BIN\C51.EXE ..\HARDWARE\max31855\max31855.c LARGE OPTIMIZE(9,SIZE) BROWSE IN
+                    -CDIR(..\FWLib\include;..\SYSTEM\init;..\SYSTEM\delay;..\SYSTEM\uart;..\USER;..\HARDWARE\led;..\HARDWARE\18b20;..\HARDWAR
+                    -E\max6675;..\HARDWARE\max31855;..\HARDWARE\max31856) DEBUG OBJECTEXTEND PRINT(..\OBJ\max31855.lst) OBJECT(..\OBJ\max3185
+                    -5.obj)
+
+line level    source
+
+   1          #include "max31855.h"
+   2          
+   3          void MAX31855_Init(void)
+   4          {
+   5   1          GPIO_InitTypeDef GPIO_InitStructure;
+   6   1          
+   7   1          GPIO_InitStructure.Mode = GPIO_HighZ;
+   8   1          GPIO_InitStructure.Pin = GPIO_Pin_2;
+   9   1          GPIO_Inilize(GPIO_P1, &GPIO_InitStructure);
+  10   1          
+  11   1          GPIO_InitStructure.Mode = GPIO_OUT_PP;
+  12   1          GPIO_InitStructure.Pin = GPIO_Pin_3;
+  13   1          GPIO_Inilize(GPIO_P1, &GPIO_InitStructure);
+  14   1          
+  15   1          GPIO_InitStructure.Mode = GPIO_OUT_PP;
+  16   1          GPIO_InitStructure.Pin = GPIO_Pin_4;
+  17   1          GPIO_Inilize(GPIO_P1, &GPIO_InitStructure);
+  18   1          
+  19   1          CS = 1;
+  20   1          SCK = 0;
+  21   1      }
+  22          
+  23          u32 MAX31855_Read(void)
+  24          {
+  25   1          u32 value = 0;
+  26   1          u8 i;
+  27   1          
+  28   1          CS = 0;
+  29   1          delay_us(2);
+  30   1          
+  31   1          for (i = 0; i < 32; i++)
+  32   1          {
+  33   2              SCK = 0;
+  34   2              delay_us(1);
+  35   2              
+  36   2              value <<= 1;
+  37   2              
+  38   2              if (MISO == 1)
+  39   2                  value |= 0x01;
+  40   2              
+  41   2              SCK = 1;
+  42   2              delay_us(1);
+  43   2          }
+  44   1          
+  45   1          CS = 1;
+  46   1          
+  47   1          return value;
+  48   1      }
+  49          
+  50          float MAX31855_ReadTemp(void)
+  51          {
+  52   1          u32 rawData = 0;
+C51 COMPILER V9.60.7.0   MAX31855                                                          03/12/2025 11:27:44 PAGE 2   
+
+  53   1          signed int tempData = 0;
+  54   1          
+  55   1          rawData = MAX31855_Read();
+  56   1          
+  57   1          if (rawData & 0x00010000)
+  58   1              return -999.0;
+  59   1          
+  60   1          tempData = (signed int)(rawData >> 18);
+  61   1          
+  62   1          return tempData * 0.25f;
+  63   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    249    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      13
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

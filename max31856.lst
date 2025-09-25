@@ -1,0 +1,399 @@
+C51 COMPILER V9.60.7.0   MAX31856                                                          04/10/2025 13:37:53 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAX31856
+OBJECT MODULE PLACED IN ..\OBJ\max31856.obj
+COMPILER INVOKED BY: D:\usr\bin\Keil_v5\C51\BIN\C51.EXE ..\HARDWARE\max31856\max31856.c LARGE OPTIMIZE(9,SIZE) BROWSE IN
+                    -CDIR(..\FWLib\include;..\SYSTEM\init;..\SYSTEM\delay;..\SYSTEM\uart;..\USER;..\HARDWARE\led;..\HARDWARE\18b20;..\HARDWAR
+                    -E\max31856) DEBUG OBJECTEXTEND PRINT(..\OBJ\max31856.lst) OBJECT(..\OBJ\max31856.obj)
+
+line level    source
+
+   1          #include "max31856.h"
+   2          
+   3          void MAX31856_Init(void)
+   4          {
+   5   1          GPIO_InitTypeDef GPIO_InitStructure;
+   6   1          
+   7   1          GPIO_InitStructure.Mode = GPIO_OUT_PP;
+   8   1          GPIO_InitStructure.Pin = GPIO_PIN_CS_MAX31856 ;
+   9   1          GPIO_Inilize(GPIO_CS_MAX31856 , &GPIO_InitStructure);
+  10   1          
+  11   1          GPIO_InitStructure.Mode = GPIO_OUT_PP;
+  12   1          GPIO_InitStructure.Pin = GPIO_PIN_SCK_MAX31856 ;
+  13   1          GPIO_Inilize(GPIO_SCK_MAX31856 , &GPIO_InitStructure);
+  14   1          
+  15   1          GPIO_InitStructure.Mode = GPIO_OUT_PP;
+  16   1          GPIO_InitStructure.Pin = GPIO_PIN_MOSI_MAX31856 ;
+  17   1          GPIO_Inilize(GPIO_MOSI_MAX31856 , &GPIO_InitStructure);
+  18   1          
+  19   1          GPIO_InitStructure.Mode = GPIO_HighZ;
+  20   1          GPIO_InitStructure.Pin = GPIO_PIN_MISO_MAX31856 ;
+  21   1          GPIO_Inilize(GPIO_MISO_MAX31856 , &GPIO_InitStructure);
+  22   1          
+  23   1          CS_MAX31856  = 1;
+  24   1          SCK_MAX31856  = 1;                              // CPOL = 1£¨×Ô¶¨Òå£©£¬CPHA = 1£¨MAX31856 Ç¿ÖÆ¹æ¶¨£©
+  25   1          
+  26   1          delay_us(2);                                    // µÈ´ý³õÊ¼»¯µçÆ½ÎÈ¶¨£¬CS¡¢SCK ¸ßµçÆ½ÎÈ¶¨     
+  27   1          
+  28   1          MAX31856_WriteCR0(0x11);                        // 00010001 Ö¸¶¨£ºÂË²¨ÆµÂÊ50Hz¡¢Ê¹ÄÜÀä¶ËÎÂ¶È¼ì²â¡¢³£±Õ
+             -Ä£Ê½¡¢Ê¹ÄÜ¿ªÂ·¹ÊÕÏ¼ì²â
+  29   1          MAX31856_WriteCR1(0x03);                        // 00000011 Ö¸¶¨£ºÈÈµçÅ¼ÀàÐÍÎªKÐÍÈÈµçÅ¼¡¢ÈÈµçÅ¼µçÑ¹×ª»
+             -»Æ½¾ùÄ£Ê½Îª1¸ö²ÉÑù
+  30   1      }
+  31          
+  32          void MAX31856_TriggerOneShot(void)
+  33          {
+  34   1          unsigned char dat;
+  35   1          
+  36   1          dat = MAX31856_ReadCR0();
+  37   1          
+  38   1          MAX31856_WriteAddress(0x80);                    // Ö¸Áî£ºÐ´ CR0 ¼Ä´æÆ÷
+  39   1          MAX31856_WriteByte(dat | 0x40);                 // ½« CR0 ¼Ä´æÆ÷µÄ 1SHOT Î»ÖÃ1£¬Ö´ÐÐÒ»´ÎÀä¶ËºÍÈÈµçÅ¼×ª
+             -»»
+  40   1          MAX31856_End();                                 // ½áÊøÒ»´ÎÍ¨ÐÅ
+  41   1      }
+  42          
+  43          void MAX31856_ChangeType(unsigned char thermocouple_type)
+  44          {
+  45   1          unsigned char dat;
+  46   1          
+  47   1          dat = MAX31856_ReadCR1();                       // Ö¸Áî£º¶Á CR1 ¼Ä´æÆ÷
+  48   1          
+  49   1          dat = dat & 0xF0;                               // Çå³ý´«¸ÐÆ÷ÀàÐÍµÄÊý¾Ý
+  50   1          dat = dat | (thermocouple_type & 0x0F);         // Ö¸¶¨´«¸ÐÆ÷ÀàÐÍµÄÊý¾Ý
+C51 COMPILER V9.60.7.0   MAX31856                                                          04/10/2025 13:37:53 PAGE 2   
+
+  51   1          
+  52   1          MAX31856_WriteCR1(dat);                         // Ö¸Áî£ºÐ´ CR1 ¼Ä´æÆ÷
+  53   1      }
+  54          
+  55          float MAX31856_ReadColdJunctionTemp(void)
+  56          {
+  57   1          unsigned char msb = 0, lsb = 0;
+  58   1          int raw;
+  59   1          float temp;
+  60   1          
+  61   1          MAX31856_WriteAddress(0x0A);                    // Ö¸Áî£º¶Á CJTH ¼Ä´æÆ÷
+  62   1          msb = MAX31856_ReadByte();                      // ¶ÁÈ¡ CJTH ¼Ä´æÆ÷µÄÊý¾Ý£¬Àä¶ËÎÂ¶ÈÊýÖµµÄ¸ß8Î»
+  63   1          lsb = MAX31856_ReadByte();                      // ¶ÁÈ¡ CJTL ¼Ä´æÆ÷µÄÊý¾Ý£¬Àä¶ËÎÂ¶ÈÊý¾ÝµÄµÍ8Î»
+  64   1          MAX31856_End();                                 // ½áÊøÒ»´ÎÍ¨ÐÅ
+  65   1          
+  66   1          raw = (int)((unsigned int)msb << 8 | lsb);      // Æ´½Ó16Î»Êý¾Ý£¬Ê¹ÓÃÂß¼­×óÒÆ£¬±£ÁôÔ­Ê¼ÄÚÈÝ
+  67   1          
+  68   1          raw >>= 2;                                      // ÌáÈ¡14Î»ÓÐÐ§Êý¾Ý£¬Í¨¹ýËãÊýÓÒÒÆ´¦Àí¶þ½øÖÆ²¹ÂëÐÎÊ½
+  69   1          
+  70   1          temp = raw * 0.015625f;                         // ×ª»»Î»ÎÂ¶ÈÖµ£º14Î»²¹Âë£¬·Ö±æÂÊ0.015625¡æ
+  71   1          
+  72   1          return temp;                                    // ·µ»ØÊµ¼ÊÎÂ¶ÈÖµ
+  73   1      }
+  74          
+  75          float MAX31856_ReadLinearizedTemp(void)
+  76          {
+  77   1          unsigned char msb, mid, lsb;
+  78   1          long raw;
+  79   1          float temp;
+  80   1          
+  81   1          MAX31856_WriteAddress(0x0C);                    // Ö¸Áî£º¶Á LTCBH ¼Ä´æÆ÷
+  82   1          msb = MAX31856_ReadByte();                      // ¶ÁÈ¡ LTCBH ¼Ä´æÆ÷µÄÊý¾Ý£¬ÈÈ¶ËÏßÐÔ»¯ÎÂ¶ÈÊýÖµµÄ¸ß8Î»
+  83   1          mid = MAX31856_ReadByte();                      // ¶ÁÈ¡ LTCBM ¼Ä´æÆ÷µÄÊý¾Ý£¬ÈÈ¶ËÏßÐÔ»¯ÎÂ¶ÈÊýÖµµÄÖÐ8Î» 
+  84   1          lsb = MAX31856_ReadByte();                      // ¶ÁÈ¡ LTCBL ¼Ä´æÆ÷µÄÊý¾Ý£¬ÈÈ¶ËÏßÐÔ»¯ÎÂ¶ÈÊýÖµµÄµÍ8Î»
+  85   1          MAX31856_End();                                 // ½áÊøÒ»´ÎÍ¨ÐÅ
+  86   1          
+  87   1          raw = (long)(((unsigned long)msb << 16) | ((unsigned long)mid << 8) | lsb);         // Æ´½Ó32Î»Êý¾Ý£¬Ê
+             -¹ÓÃÂß¼­×óÒÆ£¬±£ÁôÔ­Ê¼ÄÚÈÝ
+  88   1          raw >>= 5;                                                                          // ÌáÈ¡19Î»ÓÐÐ§Êý¾
+             -Ý£¬Í¨¹ýËãÊýÓÒÒÆ´¦Àí¶þ½øÖÆ²¹ÂëÐÎÊ½
+  89   1          
+  90   1          temp = raw * 0.0078125f;                        // ×ª»»Î»ÎÂ¶ÈÖµ£º19Î»²¹Âë£¬·Ö±æÂÊ0.0078125¡æ
+  91   1          
+  92   1          return temp;                                    // ·µ»ØÊµ¼ÊÎÂ¶ÈÖµ
+  93   1      }
+  94          
+  95          unsigned char MAX31856_AnalyzeFault(void)
+  96          {
+  97   1          unsigned char fault = 0;
+  98   1          
+  99   1          fault = MAX31856_CheckFault();
+ 100   1          
+ 101   1          if (fault & 0x01) {
+ 102   2              PrintString1("Thermocouple Open-Circuit Fault\n");              // ÈÈµçÅ¼¿ªÂ·¹ÊÕÏ
+ 103   2              return 0;
+ 104   2          }
+ 105   1          
+ 106   1          return 1;
+ 107   1      }
+ 108          
+ 109          void MAX31856_SetCJHighThreshold(char temp)
+ 110          {
+C51 COMPILER V9.60.7.0   MAX31856                                                          04/10/2025 13:37:53 PAGE 3   
+
+ 111   1          // ¼ì²é²ÎÊýÊÇ·ñ³¬³ö·¶Î§
+ 112   1          if (temp > 125) temp = 125;
+ 113   1          if (temp < -55) temp = -55;
+ 114   1          
+ 115   1          MAX31856_WriteAddress(0x83);                                        // ÏòÀä¶ËÎÂ¶ÈÉÏÏÞ¼Ä´æÆ÷Ð´ÈëÊý¾Ý
+ 116   1          MAX31856_WriteByte((unsigned char)temp);                            // ´æ´¢¸ñÊ½Îª¶þ½øÖÆ²¹Âë£¬·Ö±æÂÊÎª1
+ 117   1          MAX31856_End();                                                     // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 118   1      }
+ 119          
+ 120          void MAX31856_SetCJLowThreshold(char temp)
+ 121          {
+ 122   1          // ¼ì²é²ÎÊýÊÇ·ñ³¬³ö·¶Î§
+ 123   1          if (temp > 125) temp = 125;
+ 124   1          if (temp < -55) temp = -55;
+ 125   1          
+ 126   1          MAX31856_WriteAddress(0x84);                                        // ÏòÀä¶ËÎÂ¶ÈÏÂÏÞ¼Ä´æÆ÷Ð´ÈëÊý¾Ý
+ 127   1          MAX31856_WriteByte((unsigned char)temp);                            // ´æ´¢¸ñÊ½Îª¶þ½øÖÆ²¹Âë£¬·Ö±æÂÊÎª1
+ 128   1          MAX31856_End();                                                     // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 129   1      }
+ 130          
+ 131          void MAX31856_SetTCHighThreshold(float temp)
+ 132          {
+ 133   1          int raw;
+ 134   1          unsigned char msb, lsb;
+ 135   1          
+ 136   1          // ¼ì²é²ÎÊýÊÇ·ñ³¬³ö·¶Î§
+ 137   1          if (temp > 2047.9375) temp = 2047.9375;
+ 138   1          if (temp < -2048.0) temp = -2048.0;
+ 139   1          
+ 140   1          raw = (int)(temp / 0.0625);                                         // ·Ö±æÂÊÎª0.0625
+ 141   1          msb = (unsigned char)(((unsigned int)raw >> 8) & 0xFF);             // Æ´½Ó¸ß8Î»Êý¾Ý£¬×¢ÒâÊ¹ÓÃÂß¼­ÓÒÒÆ
+ 142   1          lsb = (unsigned char)((unsigned int)raw & 0xFF);                    // Æ´½ÓµÍ8Î»Êý¾Ý£¬×¢ÒâÊ¹ÓÃÂß¼­ÓÒÒÆ
+ 143   1          
+ 144   1          MAX31856_WriteAddress(0x85);                                        // ÏòÏßÐÔ»¯ÎÂ¶ÈÉÏÏÞ¼Ä´æÆ÷Ð´ÈëÊý¾Ý
+ 145   1          MAX31856_WriteByte(msb);                                            // Ð´Èë¸ß8Î»Êý¾Ý
+ 146   1          MAX31856_WriteByte(lsb);                                            // Ð´ÈëµÍ8Î»Êý¾Ý
+ 147   1          MAX31856_End();                                                     // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 148   1      }
+ 149          
+ 150          void MAX31856_SetTCLowThreshold(float temp)
+ 151          {
+ 152   1          int raw;
+ 153   1          unsigned char msb, lsb;
+ 154   1          
+ 155   1          // ¼ì²é²ÎÊýÊÇ·ñ³¬³ö·¶Î§
+ 156   1          if (temp > 2047.9375) temp = 2047.9375;
+ 157   1          if (temp < -2048.0) temp = -2048.0;
+ 158   1          
+ 159   1          raw = (int)(temp / 0.0625);                                         // ·Ö±æÂÊÎª0.0625
+ 160   1          msb = (unsigned char)(((unsigned int)raw >> 8) & 0xFF);             // Æ´½Ó¸ß8Î»Êý¾Ý£¬×¢ÒâÊ¹ÓÃÂß¼­ÓÒÒÆ
+ 161   1          lsb = (unsigned char)((unsigned int)raw & 0xFF);                    // Æ´½ÓµÍ8Î»Êý¾Ý£¬×¢ÒâÊ¹ÓÃÂß¼­ÓÒÒÆ
+ 162   1          
+ 163   1          MAX31856_WriteAddress(0x87);                                        // ÏòÏßÐÔ»¯ÎÂ¶ÈÏÂÏÞ¼Ä´æÆ÷Ð´ÈëÊý¾Ý
+ 164   1          MAX31856_WriteByte(msb);                                            // Ð´Èë¸ß8Î»Êý¾Ý
+ 165   1          MAX31856_WriteByte(lsb);                                            // Ð´ÈëµÍ8Î»Êý¾Ý
+ 166   1          MAX31856_End();                                                     // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 167   1      }
+ 168          
+ 169          void MAX31856_WriteColdJunctionTemp(float temp)
+ 170          {
+ 171   1          int raw;
+ 172   1          unsigned char msb, lsb;
+C51 COMPILER V9.60.7.0   MAX31856                                                          04/10/2025 13:37:53 PAGE 4   
+
+ 173   1          
+ 174   1          // ¼ì²é²ÎÊýÊÇ·ñ³¬³ö·¶Î§
+ 175   1          if (temp > 125) temp = 125;
+ 176   1          if (temp < -55) temp = -55;
+ 177   1          
+ 178   1          raw = (int)(temp / 0.015625);                                       // ·Ö±æÂÊÎª0.015625
+ 179   1          raw <<= 2;                                                          // Í¨¹ýËãÊý×óÒÆ£¬±£ÁôÁ½Î»ÎÞÐ§Î»
+ 180   1          
+ 181   1          msb = ((unsigned int)raw >> 8) & 0xFF;                              // ÌáÈ¡¸ß8Î»£¬Í¨¹ýÂß¼­ÓÒÒÆ£¬±£ÁôÔ­
+             -Ê¼Êý¾Ý
+ 182   1          lsb = raw & 0xFF;                                                   // ÌáÈ¡µÍ8Î»
+ 183   1          
+ 184   1          MAX31856_WriteAddress(0x8A);                                        // ÏòÀä¶ËÎÂ¶È¼Ä´æÆ÷Ð´ÈëÊý¾Ý
+ 185   1          MAX31856_WriteByte(msb);                                            // Ð´Èë¸ß8Î»Êý¾Ý
+ 186   1          MAX31856_WriteByte(lsb);                                            // Ð´ÈëµÍ8Î»Êý¾Ý
+ 187   1          MAX31856_End();                                                     // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 188   1      }
+ 189          
+ 190          void MAX31856_DisableColdJunctionSensor(void)
+ 191          {
+ 192   1          unsigned char dat;
+ 193   1          
+ 194   1          dat = MAX31856_ReadCR0();                                           // ¶ÁÈ¡CR0¼Ä´æÆ÷µÄÄÚÈÝ
+ 195   1          
+ 196   1          dat |= 0x08;                                                        // Æ´½ÓÊý¾Ý£¬½ûÓÃÄÚ²¿Àä¶ËÎÂ¶È¼ì²â
+ 197   1          
+ 198   1          MAX31856_WriteCR0(dat);                                             // ½«Æ´½ÓµÄÊý¾ÝÐ´ÈëCR0¼Ä´æÆ÷
+ 199   1      }
+ 200          
+ 201          void MAX31856_WriteColdJunctionOffset(float offset)
+ 202          {
+ 203   1          char dat;
+ 204   1          
+ 205   1          // ¼ì²é²ÎÊýÊÇ·ñ³¬³ö·¶Î§
+ 206   1          if (offset > 7.9375) offset = 7.9375;
+ 207   1          if (offset < -8) offset = -8;
+ 208   1          
+ 209   1          dat = (char)(offset / 0.0625);                  // ·Ö±æÂÊÎª0.0625
+ 210   1          
+ 211   1          MAX31856_WriteAddress(0x89);                    // ÏòÀä¶ËÎÂ¶ÈÆ«ÒÆ¼Ä´æÆ÷Ð´ÈëÊý¾Ý
+ 212   1          MAX31856_WriteByte((unsigned char)dat);         // ´æ´¢¸ñÊ½Î»¶þ½øÖÆ²¹Âë£¬·Ö±æÂÊÎª0.0625
+ 213   1          MAX31856_End();                                 // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 214   1      }
+ 215          
+ 216          unsigned char MAX31856_CheckFault(void)
+ 217          {
+ 218   1          unsigned char fault;
+ 219   1          
+ 220   1          MAX31856_WriteAddress(0x0F);                    // Ö¸Áî£º¶Á SR ¼Ä´æÆ÷
+ 221   1          fault = MAX31856_ReadByte();                    // ¶ÁÈ¡ SR ¼Ä´æÆ÷µÄÊý¾Ý£¬¹ÊÕÏ×´Ì¬¼Ä´æÆ÷
+ 222   1          MAX31856_End();                                 // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 223   1          
+ 224   1          return fault;
+ 225   1      }
+ 226          
+ 227          void MAX31856_WriteCR0(unsigned char dat)
+ 228          {
+ 229   1          MAX31856_WriteAddress(0x80);                    // Ö¸Áî£ºÐ´ CR0 ¼Ä´æÆ÷
+ 230   1          MAX31856_WriteByte(dat);                        // Ïò CR0 ¼Ä´æÆ÷Ð´ÈëÖ¸¶¨Êý¾Ý£¬ÅäÖÃ¼Ä´æÆ÷0
+ 231   1          MAX31856_End();                                 // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 232   1      }
+ 233          
+C51 COMPILER V9.60.7.0   MAX31856                                                          04/10/2025 13:37:53 PAGE 5   
+
+ 234          void MAX31856_WriteCR1(unsigned char dat)
+ 235          {
+ 236   1          MAX31856_WriteAddress(0x81);                    // Ö¸Áî£ºÐ´ CR1 ¼Ä´æÆ÷
+ 237   1          MAX31856_WriteByte(dat);                        // Ïò CR1 ¼Ä´æÆ÷Ð´ÈëÖ¸¶¨Êý¾Ý£¬ÅäÖÃ¼Ä´æÆ÷1
+ 238   1          MAX31856_End();                                 // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 239   1      }
+ 240          
+ 241          unsigned char MAX31856_ReadCR0(void)
+ 242          {
+ 243   1          unsigned char dat;
+ 244   1          
+ 245   1          MAX31856_WriteAddress(0x00);                    // Ö¸Áî£º¶Á CR0 ¼Ä´æÆ÷
+ 246   1          dat = MAX31856_ReadByte();                      // ¶ÁÈ¡ CR0 ¼Ä´æÆ÷µÄÊý¾Ý£¬ÅäÖÃ¼Ä´æÆ÷0
+ 247   1          MAX31856_End();                                 // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 248   1          
+ 249   1          return dat;
+ 250   1      }
+ 251          
+ 252          unsigned char MAX31856_ReadCR1(void)
+ 253          {
+ 254   1          unsigned char dat;
+ 255   1          
+ 256   1          MAX31856_WriteAddress(0x01);                    // Ö¸Áî£º¶Á CR1 ¼Ä´æÆ÷
+ 257   1          dat = MAX31856_ReadByte();                      // ¶ÁÈ¡ CR1 ¼Ä´æÆ÷µÄÊý¾Ý£¬ÅäÖÃ¼Ä´æÆ÷1
+ 258   1          MAX31856_End();                                 // ½áÊøÒ»´ÎÍ¨ÐÅ
+ 259   1          
+ 260   1          return dat;
+ 261   1      }
+ 262          
+ 263          void MAX31856_WriteAddress(unsigned char dat)
+ 264          {
+ 265   1          unsigned char i;
+ 266   1          
+ 267   1          CS_MAX31856  = 0;                               // À­µÍ CS
+ 268   1          
+ 269   1          MAX31856_delay();                               // Ê±¼ä¼ä¸ô£ºtCC
+ 270   1          
+ 271   1          /* Ò»´Î for Ñ­»·ÖÁÉÙÐèÒª328ns£¨Á½¸öÊ±¼ä¼ä¸ô£©£¬¼´SCKÊ±ÖÓÖÜÆÚ´óÖÂ3MHz£¬·ûºÏ MAX31856 µÄ fSCLÒªÇó */
+ 272   1          for (i = 0; i < 8; i++)
+ 273   1          {
+ 274   2              SCK_MAX31856 = 0;                           // À­µÍ SCK
+ 275   2              
+ 276   2              MOSI_MAX31856 = (dat & 0x80) ? 1 : 0;       // ½«Êý¾Ý·Åµ½ MOSI Êý¾ÝÏßÉÏ
+ 277   2              
+ 278   2              MAX31856_delay();                           // Ê±¼ä¼ä¸ô£ºtCL¡¢tDC
+ 279   2              
+ 280   2              SCK_MAX31856 = 1;                           // À­¸ß SCK
+ 281   2              
+ 282   2              MAX31856_delay();                           // Ê±¼ä¼ä¸ô£ºtCH¡¢tCDH
+ 283   2              
+ 284   2              dat <<= 1;                                  // ¸üÐÂÏÂ´ÎÊä³öµÄÊý¾Ý
+ 285   2          }
+ 286   1      }
+ 287          
+ 288          void MAX31856_WriteByte(unsigned char dat)
+ 289          {
+ 290   1          unsigned char i;
+ 291   1          
+ 292   1          /* Ò»´Î for Ñ­»·ÖÁÉÙÐèÒª328ns£¨Á½¸öÊ±¼ä¼ä¸ô£©£¬¼´SCKÊ±ÖÓÖÜÆÚ´óÖÂ3MHz£¬·ûºÏ MAX31856 µÄ fSCLÒªÇó */
+ 293   1          for (i = 0; i < 8; i++)
+ 294   1          {
+ 295   2              SCK_MAX31856 = 0;                           // À­µÍ SCK
+C51 COMPILER V9.60.7.0   MAX31856                                                          04/10/2025 13:37:53 PAGE 6   
+
+ 296   2              
+ 297   2              MOSI_MAX31856 = (dat & 0x80) ? 1 : 0;       // ½«Êý¾Ý·Åµ½ MOSI Êý¾ÝÏßÉÏ
+ 298   2              
+ 299   2              MAX31856_delay();                           // Ê±¼ä¼ä¸ô£ºtCL¡¢tDC
+ 300   2              
+ 301   2              SCK_MAX31856 = 1;                           // À­¸ß SCK
+ 302   2              
+ 303   2              MAX31856_delay();                           // Ê±¼ä¼ä¸ô£ºtCH¡¢tCDH
+ 304   2              
+ 305   2              dat <<= 1;                                  // ¸üÐÂÏÂ´ÎÊä³öµÄÊý¾Ý
+ 306   2          }
+ 307   1      }
+ 308          
+ 309          unsigned char MAX31856_ReadByte(void)
+ 310          {
+ 311   1          unsigned char i, dat = 0;
+ 312   1          
+ 313   1          /* Ò»´Î for Ñ­»·ÖÁÉÙÐèÒª328ns£¨Á½¸öÊ±¼ä¼ä¸ô£©£¬¼´SCKÊ±ÖÓÖÜÆÚ´óÖÂ3MHz£¬·ûºÏ MAX31856 µÄ fSCLÒªÇó */
+ 314   1          for (i = 0; i < 8; i++)
+ 315   1          {
+ 316   2              SCK_MAX31856 = 0;                           // À­µÍ SCK
+ 317   2              
+ 318   2              MAX31856_delay();                           // Ê±¼ä¼ä¸ô£ºtCL¡¢tDC¡¢tCDD
+ 319   2              
+ 320   2              SCK_MAX31856 = 1;                           // À­¸ß SCK
+ 321   2              
+ 322   2              MAX31856_delay();                           // Ê±¼ä¼ä¸ô£ºtCH¡¢tCDH
+ 323   2              
+ 324   2              dat <<= 1;                                  // ¸üÐÂÉÏ´Î¶ÁÈëµÄÊý¾Ý
+ 325   2              if (MISO_MAX31856 ) dat |= 0x01;            // ¶ÁÈ¡ MISO Êý¾ÝÏßµÄÊý¾Ý
+ 326   2          }
+ 327   1          
+ 328   1          return dat;
+ 329   1      }
+ 330          
+ 331          void MAX31856_End(void)
+ 332          {
+ 333   1          
+ 334   1          SCK_MAX31856 = 1;                               // À­¸ß SCK
+ 335   1          
+ 336   1          MAX31856_delay();                               // Ê±¼ä¼ä¸ô£ºtCCH
+ 337   1          
+ 338   1          CS_MAX31856 = 1;                                // À­¸ß CS
+ 339   1          
+ 340   1          /* Ê±¼ä¼ä¸ô£ºtCWH */
+ 341   1          MAX31856_delay();
+ 342   1          MAX31856_delay();
+ 343   1          MAX31856_delay();
+ 344   1          MAX31856_delay();
+ 345   1      }
+ 346          
+ 347          void MAX31856_delay(void)
+ 348          {
+ 349   1          /* STC8HÏµÁÐµ¥Æ¬»ú£¬Ö¸¶¨ÆµÂÊÎ»24MHz
+ 350   1             ´ËÆµÂÊÏÂ£¬Ö´ÐÐÒ»¸ö»úÆ÷Ö¸Áî´óÖÂÐèÒª41ns£¬´Ëº¯Êý³ýÈ¥º¯Êýµ÷ÓÃµÈÆäËû±ØÒª¿ªÏú£¬×îÉÙÑÓ³Ù4 * 41 = 164ns
+ 351   1          */
+ 352   1          _nop_();                                        // Ö´ÐÐÒ»¸ö¿ÕÖ¸Áî
+ 353   1          _nop_();
+ 354   1          _nop_();
+ 355   1          _nop_();
+ 356   1      }
+
+C51 COMPILER V9.60.7.0   MAX31856                                                          04/10/2025 13:37:53 PAGE 7   
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1152    ----
+   CONSTANT SIZE    =     33    ----
+   XDATA SIZE       =   ----      45
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

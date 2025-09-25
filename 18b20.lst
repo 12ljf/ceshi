@@ -1,0 +1,239 @@
+C51 COMPILER V9.60.7.0   18B20                                                             04/10/2025 13:26:13 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE 18B20
+OBJECT MODULE PLACED IN ..\OBJ\18b20.obj
+COMPILER INVOKED BY: D:\usr\bin\Keil_v5\C51\BIN\C51.EXE ..\HARDWARE\18b20\18b20.c LARGE OPTIMIZE(9,SIZE) BROWSE INCDIR(.
+                    -.\FWLib\include;..\SYSTEM\init;..\SYSTEM\delay;..\SYSTEM\uart;..\USER;..\HARDWARE\led;..\HARDWARE\18b20;..\HARDWARE\max3
+                    -1856) DEBUG OBJECTEXTEND PRINT(..\OBJ\18b20.lst) OBJECT(..\OBJ\18b20.obj)
+
+line level    source
+
+   1          #include "18b20.h"
+   2          
+   3          
+   4          DS18B20_t DS18B20;
+   5          
+   6          void ds18b20_IO_init(void)
+   7          {
+   8   1              GPIO_InitTypeDef        GPIO_InitStructure;             //结构定义
+   9   1              GPIO_InitStructure.Pin  = GPIO_Pin_6;           //指定要初始化的IO,
+  10   1              GPIO_InitStructure.Mode = GPIO_PullUp;          //指定IO的输入或输出方式,GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPIO_
+             -OUT_PP
+  11   1              GPIO_Inilize(GPIO_P1,&GPIO_InitStructure);      //初始化
+  12   1      }
+  13          
+  14          /*******************************************************************************
+  15          * 函 数 名         : ds18b201_reset
+  16          * 函数功能                 : 复位ds18b201  
+  17          * 输    入         : 无
+  18          * 输    出         : 无
+  19          *******************************************************************************/
+  20          void ds18b20_reset(void)
+  21          {
+  22   1              DS18B20_PORT=0; //拉低DQ
+  23   1              delay_10us(75); //拉低750us
+  24   1              DS18B20_PORT=1; //DQ=1
+  25   1              delay_10us(2);  //20US
+  26   1      }
+  27          /*******************************************************************************
+  28          * 函 数 名         : ds18b201_check
+  29          * 函数功能                 : 检测ds18b201是否存在
+  30          * 输    入         : 无
+  31          * 输    出         : 1:未检测到ds18b201的存在，0:存在
+  32          *******************************************************************************/
+  33          u8 ds18b20_check(void)
+  34          {
+  35   1              u8 time_temp=0;
+  36   1      
+  37   1              while(DS18B20_PORT&&time_temp<20)       //等待DQ为低电平
+  38   1              {
+  39   2                      time_temp++;
+  40   2                      delay_10us(1);  
+  41   2              }
+  42   1              if(time_temp>=20)return 1;      //如果超时则强制返回1
+  43   1              else time_temp=0;
+  44   1              while((!DS18B20_PORT)&&time_temp<20)    //等待DQ为高电平
+  45   1              {
+  46   2                      time_temp++;
+  47   2                      delay_10us(1);
+  48   2              }
+  49   1              if(time_temp>=20)return 1;      //如果超时则强制返回1
+  50   1              return 0;
+  51   1      }
+  52          /*******************************************************************************
+C51 COMPILER V9.60.7.0   18B20                                                             04/10/2025 13:26:13 PAGE 2   
+
+  53          * 函 数 名         : ds18b201_read_bit
+  54          * 函数功能                 : 从ds18b201读取一个位
+  55          * 输    入         : 无
+  56          * 输    出         : 1/0
+  57          *******************************************************************************/
+  58          u8 ds18b20_read_bit(void)
+  59          {
+  60   1              u8 dat=0;
+  61   1              
+  62   1              DS18B20_PORT=0;
+  63   1              delay_us(6);
+  64   1              DS18B20_PORT=1; 
+  65   1              delay_10us(1); //该段时间不能过长，必须在15us内读取数据
+  66   1              if(DS18B20_PORT)dat=1;  //如果总线上为1则数据dat为1，否则为0
+  67   1              else dat=0;
+  68   1              delay_10us(5);
+  69   1              return dat;
+  70   1      }
+  71          /*******************************************************************************
+  72          * 函 数 名         : ds18b201_read_bit
+  73          * 函数功能                 : 从ds18b201读取两个位
+  74          * 输    入         : 无
+  75          * 输    出         : 1/0
+  76          *******************************************************************************/
+  77          
+  78          // 从ds18b201读取2个位
+  79          u8 ds18b20_Read_2Bit(void)//读二位 子程序
+  80          {
+  81   1              u8 i;
+  82   1              u8 dat = 0;
+  83   1              for (i = 2; i > 0; i--)
+  84   1              {
+  85   2                      dat = dat << 1;
+  86   2                      DS18B20_PORT=0;
+  87   2                      delay_us(6);
+  88   2                      DS18B20_PORT=1; 
+  89   2                      delay_10us(1); //该段时间不能过长，必须在15us内读取数据
+  90   2                      if (DS18B20_PORT)       dat |= 0x01;
+  91   2                      delay_us(50);
+  92   2              }
+  93   1              return dat;
+  94   1      }
+  95          /*******************************************************************************
+  96          * 函 数 名         : ds18b201_read_byte
+  97          * 函数功能                 : 从ds18b201读取一个字节
+  98          * 输    入         : 无
+  99          * 输    出         : 一个字节数据
+ 100          *******************************************************************************/
+ 101          u8 ds18b20_read_byte(void)
+ 102          {
+ 103   1              u8 i=0;
+ 104   1              u8 dat=0;
+ 105   1              u8 temp=0;
+ 106   1      
+ 107   1              for(i=0;i<8;i++)//循环8次，每次读取一位，且先读低位再读高位
+ 108   1              {
+ 109   2                      temp=ds18b20_read_bit();
+ 110   2                      dat=(temp<<7)|(dat>>1);
+ 111   2              }
+ 112   1              return dat;     
+ 113   1      }
+ 114          /*******************************************************************************
+C51 COMPILER V9.60.7.0   18B20                                                             04/10/2025 13:26:13 PAGE 3   
+
+ 115          * 函 数 名         : ds18b201_write_byte
+ 116          * 函数功能                               : 写一个字节到ds18b201
+ 117          * 输    入         : dat：要写入的字节
+ 118          * 输    出         : 无
+ 119          *******************************************************************************/
+ 120          
+ 121          void ds18b20_Write_Bit(u8 dat)
+ 122          {
+ 123   1              if(dat)
+ 124   1              {
+ 125   2                      DS18B20_PORT=0;
+ 126   2                      delay_us(5);
+ 127   2                      DS18B20_PORT=1; 
+ 128   2                      delay_10us(6);
+ 129   2              }
+ 130   1              else
+ 131   1              {
+ 132   2                      DS18B20_PORT=0;
+ 133   2                      delay_10us(6);
+ 134   2                      DS18B20_PORT=1;
+ 135   2                      delay_us(5);    
+ 136   2              }       
+ 137   1      }
+ 138          /*******************************************************************************
+ 139          * 函 数 名         : ds18b201_write_byte
+ 140          * 函数功能                 : 写一个字节到ds18b201
+ 141          * 输    入         : dat：要写入的字节
+ 142          * 输    出         : 无
+ 143          *******************************************************************************/
+ 144          void ds18b20_write_byte(u8 dat)
+ 145          {
+ 146   1              u8 i=0;
+ 147   1              u8 temp=0;
+ 148   1      
+ 149   1              for(i=0;i<8;i++)//循环8次，每次写一位，且先写低位再写高位
+ 150   1              {
+ 151   2                      temp=dat&0x01;//选择低位准备写入
+ 152   2                      dat>>=1;//将次高位移到低位
+ 153   2                      if(temp)
+ 154   2                      {
+ 155   3                              DS18B20_PORT=0;
+ 156   3                              delay_us(5);
+ 157   3                              DS18B20_PORT=1; 
+ 158   3                              delay_10us(6);
+ 159   3                      }
+ 160   2                      else
+ 161   2                      {
+ 162   3                              DS18B20_PORT=0;
+ 163   3                              delay_10us(6);
+ 164   3                              DS18B20_PORT=1;
+ 165   3                              delay_us(5);    
+ 166   3                      }       
+ 167   2              }       
+ 168   1      }
+ 169          /*******************************************************************************
+ 170          * 函 数 名         : ds18b201_read_temperture
+ 171          * 函数功能                 : 从ds18b201得到温度值
+ 172          * 输    入         : 无
+ 173          * 输    出         : 温度数据
+ 174          *******************************************************************************/
+ 175          float ds18b20_read_temperture(void)
+ 176          {
+C51 COMPILER V9.60.7.0   18B20                                                             04/10/2025 13:26:13 PAGE 4   
+
+ 177   1              float temp;
+ 178   1              u8 dath=0;
+ 179   1              u8 datl=0;
+ 180   1              u16 value=0;
+ 181   1      
+ 182   1      
+ 183   1              ds18b20_reset();                                                                        //复位
+ 184   1              DS18B20.sta = ds18b20_check();  //检查ds18b201
+ 185   1              ds18b20_write_byte(0xCC);                               //SKIP ROM
+ 186   1        ds18b20_write_byte(0x44);                             //转换命令      
+ 187   1      
+ 188   1              ds18b20_reset();//复位
+ 189   1              DS18B20.sta = ds18b20_check();
+ 190   1      
+ 191   1              ds18b20_write_byte(0xCC);//查询ROM
+ 192   1        ds18b20_write_byte(0xBE);//读存储器
+ 193   1      
+ 194   1              datl=ds18b20_read_byte();//低字节
+ 195   1              dath=ds18b20_read_byte();//高字节
+ 196   1      
+ 197   1              value=(dath<<8)+datl;//合并为16位数据
+ 198   1              
+ 199   1              if((value&0xf800)==0xf800)//判断符号位，负温度
+ 200   1              {
+ 201   2                      value=(~value)+1; //数据取反再加1
+ 202   2                      temp=value*(-0.0625);   
+ 203   2              }
+ 204   1              else //正温度
+ 205   1                      temp=value*(0.0625);
+ 206   1              return temp;
+ 207   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    564    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      5      18
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

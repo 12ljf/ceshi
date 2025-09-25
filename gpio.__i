@@ -1,0 +1,1 @@
+"..\HARDWARE\gpio\gpio.c" LARGE OPTIMIZE (9,SIZE) BROWSE INCDIR(..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\init;..\FWLib\include;..\USER;..\HARDWARE\gpio;..\SYSTEM\uart;..\HARDWARE\max31865;..\HARDWARE\18b20) DEBUG OBJECTEXTEND PRINT(..\OBJ\gpio.lst) TABS (2) OBJECT(..\OBJ\gpio.obj)

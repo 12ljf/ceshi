@@ -1,0 +1,69 @@
+C51 COMPILER V9.60.7.0   DELAY                                                             04/10/2025 13:26:13 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE DELAY
+OBJECT MODULE PLACED IN ..\OBJ\delay.obj
+COMPILER INVOKED BY: D:\usr\bin\Keil_v5\C51\BIN\C51.EXE ..\SYSTEM\delay\delay.c LARGE OPTIMIZE(9,SIZE) BROWSE INCDIR(..\
+                    -FWLib\include;..\SYSTEM\init;..\SYSTEM\delay;..\SYSTEM\uart;..\USER;..\HARDWARE\led;..\HARDWARE\18b20;..\HARDWARE\max318
+                    -56) DEBUG OBJECTEXTEND PRINT(..\OBJ\delay.lst) OBJECT(..\OBJ\delay.obj)
+
+line level    source
+
+   1          #include        "delay.h"
+   2          
+   3          //========================================================================
+   4          // 函数: void delay_ms(unsigned char ms)
+   5          // 描述: 延时函数。
+   6          // 参数: ms,要延时的ms数, 这里只支持1~255ms. 自动适应主时钟.
+   7          // 返回: none.
+   8          // 版本: VER1.0
+   9          // 日期: 2021-3-9
+  10          // 备注: 
+  11          //========================================================================
+  12          void delay_ms(unsigned int ms)
+  13          {
+  14   1              unsigned int i;
+  15   1              do
+  16   1              {
+  17   2                      i = MAIN_Fosc / 10000;
+  18   2                      while(--i);
+  19   2              }while(--ms);
+  20   1      }
+  21          
+  22          
+  23          void delay_us(unsigned int us)
+  24          {
+  25   1              unsigned int i;
+  26   1              do
+  27   1              {
+  28   2                      i = MAIN_Fosc / 10000000;
+  29   2                      while(--i);
+  30   2              }while(--us);
+  31   1      }
+  32          
+  33          void delay_10us(u16 us)
+  34          {
+  35   1      unsigned int i;
+  36   1              do
+  37   1              {
+  38   2                      i = MAIN_Fosc / 1000000;
+  39   2                      while(--i);
+  40   2              }while(--us);   
+  41   1      }
+  42          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     69    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.60.7.0   DELAY                                                             04/10/2025 13:26:13 PAGE 2   
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

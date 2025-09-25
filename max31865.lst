@@ -1,0 +1,28 @@
+C51 COMPILER V9.56.0.0   MAX31865                                                          02/15/2025 19:23:28 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE MAX31865
+OBJECT MODULE PLACED IN ..\OBJ\max31865.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE ..\HARDWARE\max31865\max31865.c LARGE OPTIMIZE(9,SIZE) BROWSE INCDIR(..\
+                    -SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\init;..\FWLib\include;..\USER;..\HARDWARE\gpio;..\SYSTEM\uart;..\HARDWARE\max31865;
+                    -..\HARDWARE\18b20) DEBUG OBJECTEXTEND PRINT(..\OBJ\max31865.lst) TABS(2) OBJECT(..\OBJ\max31865.obj)
+
+line level    source
+
+   1          #include "max31865.h"
+   2          #include "math.h"
+   3          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

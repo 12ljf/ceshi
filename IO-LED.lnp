@@ -1,0 +1,8 @@
+".\list\main.obj",
+".\list\gpio.obj",
+".\list\delay.obj",
+".\list\init.obj",
+".\list\stc_gpio.obj" 
+TO ".\list\IO-LED" 
+PRINT("..\OBJ\IO-LED.m51") RAMSIZE(256) 
+DISABLEWARNING (16) 

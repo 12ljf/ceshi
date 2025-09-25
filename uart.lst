@@ -1,0 +1,115 @@
+C51 COMPILER V9.60.7.0   UART                                                              04/10/2025 13:26:13 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE UART
+OBJECT MODULE PLACED IN ..\OBJ\uart.obj
+COMPILER INVOKED BY: D:\usr\bin\Keil_v5\C51\BIN\C51.EXE ..\SYSTEM\uart\uart.c LARGE OPTIMIZE(9,SIZE) BROWSE INCDIR(..\FW
+                    -Lib\include;..\SYSTEM\init;..\SYSTEM\delay;..\SYSTEM\uart;..\USER;..\HARDWARE\led;..\HARDWARE\18b20;..\HARDWARE\max31856
+                    -) DEBUG OBJECTEXTEND PRINT(..\OBJ\uart.lst) OBJECT(..\OBJ\uart.obj)
+
+line level    source
+
+   1          #include "uart.h"
+   2          
+   3          
+   4          void uart1_init(unsigned long bound)
+   5          {
+   6   1              GPIO_InitTypeDef        GPIO_InitStructure;             //½á¹¹¶¨Òå
+   7   1              COMx_InitDefine         COMx_InitStructure;                                     //½á¹¹¶¨Òå
+   8   1              
+   9   1              
+  10   1              GPIO_InitStructure.Pin  = GPIO_Pin_0 | GPIO_Pin_1;              //Ö¸¶¨Òª³õÊ¼»¯µÄIO, GPIO_Pin_0 ~ GPIO_Pin_7
+  11   1              GPIO_InitStructure.Mode = GPIO_PullUp;  //Ö¸¶¨IOµÄÊäÈë»òÊä³ö·½Ê½,GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPIO_O
+             -UT_PP
+  12   1              GPIO_Inilize(GPIO_P3,&GPIO_InitStructure);      //³õÊ¼»¯
+  13   1              
+  14   1              
+  15   1              COMx_InitStructure.UART_Mode      = UART_8bit_BRTx;             //Ä£Ê½,       UART_ShiftRight,UART_8bit_BRTx,UART_9b
+             -it,UART_9bit_BRTx
+  16   1              COMx_InitStructure.UART_BRT_Use   = BRT_Timer1;                 //Ñ¡Ôñ²¨ÌØÂÊ·¢ÉúÆ÷,   BRT_Timer1, BRT_Timer2 (×¢Òâ: ´®¿
+             -Ú2¹Ì¶¨Ê¹ÓÃBRT_Timer2)
+  17   1              COMx_InitStructure.UART_BaudRate  = bound;                      //²¨ÌØÂÊ, Ò»°ã 110 ~ 115200
+  18   1              COMx_InitStructure.UART_RxEnable  = ENABLE;                             //½ÓÊÕÔÊÐí,   ENABLE»òDISABLE
+  19   1              COMx_InitStructure.BaudRateDouble = DISABLE;                    //²¨ÌØÂÊ¼Ó±¶, ENABLE»òDISABLE
+  20   1              COMx_InitStructure.UART_Interrupt = ENABLE;                             //ÖÐ¶ÏÔÊÐí,   ENABLE»òDISABLE
+  21   1              COMx_InitStructure.UART_Priority    = Priority_0;                       //Ö¸¶¨ÖÐ¶ÏÓÅÏÈ¼¶(µÍµ½¸ß) Priority_0,Priority_1,Priori
+             -ty_2,Priority_3
+  22   1              COMx_InitStructure.UART_P_SW      = UART1_SW_P30_P31;   //ÇÐ»»¶Ë¿Ú,   UART1_SW_P30_P31,UART1_SW_P36_P37,UAR
+             -T1_SW_P16_P17,UART1_SW_P43_P44
+  23   1              UART_Configuration(UART1, &COMx_InitStructure);         //³õÊ¼»¯´®¿Ú1 UART1,UART2,UART3,UART4
+  24   1      }
+  25          
+  26          
+  27          void uart2_init(unsigned long bound)
+  28          {
+  29   1              GPIO_InitTypeDef        GPIO_InitStructure;             //½á¹¹¶¨Òå
+  30   1              COMx_InitDefine         COMx_InitStructure;                                     //½á¹¹¶¨Òå
+  31   1              
+  32   1              
+  33   1              GPIO_InitStructure.Pin  = GPIO_Pin_0 | GPIO_Pin_1;              //Ö¸¶¨Òª³õÊ¼»¯µÄIO, GPIO_Pin_0 ~ GPIO_Pin_7
+  34   1              GPIO_InitStructure.Mode = GPIO_PullUp;  //Ö¸¶¨IOµÄÊäÈë»òÊä³ö·½Ê½,GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPIO_O
+             -UT_PP
+  35   1              GPIO_Inilize(GPIO_P1,&GPIO_InitStructure);      //³õÊ¼»¯
+  36   1              
+  37   1              GPIO_InitStructure.Pin  = GPIO_Pin_2;           //Ö¸¶¨Òª³õÊ¼»¯µÄIO, GPIO_Pin_0 ~ GPIO_Pin_7
+  38   1              GPIO_InitStructure.Mode = GPIO_OUT_PP;  //Ö¸¶¨IOµÄÊäÈë»òÊä³ö·½Ê½,GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPIO_O
+             -UT_PP
+  39   1              GPIO_Inilize(GPIO_P1,&GPIO_InitStructure);      //³õÊ¼»¯
+  40   1              
+  41   1              COMx_InitStructure.UART_Mode      = UART_8bit_BRTx;             //Ä£Ê½,       UART_ShiftRight,UART_8bit_BRTx,UART_9b
+             -it,UART_9bit_BRTx
+  42   1              COMx_InitStructure.UART_BRT_Use   = BRT_Timer2;                 //Ñ¡Ôñ²¨ÌØÂÊ·¢ÉúÆ÷, BRT_Timer2 (×¢Òâ: ´®¿Ú2¹Ì¶¨Ê¹ÓÃBRT_
+             -Timer2, ËùÒÔ²»ÓÃÑ¡Ôñ)
+  43   1              COMx_InitStructure.UART_BaudRate  = bound;                      //²¨ÌØÂÊ,     110 ~ 115200
+  44   1              COMx_InitStructure.UART_RxEnable  = ENABLE;                             //½ÓÊÕÔÊÐí,   ENABLE»òDISABLE
+C51 COMPILER V9.60.7.0   UART                                                              04/10/2025 13:26:13 PAGE 2   
+
+  45   1              COMx_InitStructure.BaudRateDouble = DISABLE;                    //²¨ÌØÂÊ¼Ó±¶, ENABLE»òDISABLE
+  46   1              COMx_InitStructure.UART_Interrupt = ENABLE;                             //ÖÐ¶ÏÔÊÐí,   ENABLE»òDISABLE
+  47   1              COMx_InitStructure.UART_Priority    = Priority_0;                       //Ö¸¶¨ÖÐ¶ÏÓÅÏÈ¼¶(µÍµ½¸ß) Priority_0,Priority_1,Priori
+             -ty_2,Priority_3
+  48   1              COMx_InitStructure.UART_P_SW      = UART2_SW_P10_P11;   //ÇÐ»»¶Ë¿Ú,   UART2_SW_P10_P11,UART2_SW_P46_P47
+  49   1              UART_Configuration(UART2, &COMx_InitStructure);         //³õÊ¼»¯´®¿Ú2 UART1,UART2,UART3,UART4
+  50   1      }
+  51          
+  52          
+  53          void RxData_Handle(void)
+  54          {
+  55   1              //ÅÐ¶Ï³¬Ê±½ÓÊÕ
+  56   1              if(COM1.RX_TimeOut > 0)
+  57   1              {
+  58   2                      if(--COM1.RX_TimeOut == 0)
+  59   2                      {       
+  60   3                              if(COM1.RX_Cnt > 0)
+  61   3                              {
+  62   4                              }
+  63   3                              COM1.RX_Cnt = 0;
+  64   3                      }
+  65   2              }
+  66   1              
+  67   1              if(COM2.RX_TimeOut > 0)
+  68   1              {
+  69   2                      if(--COM2.RX_TimeOut == 0)
+  70   2                      {
+  71   3                              if(COM2.RX_Cnt > 0)
+  72   3                              {
+  73   4                              }
+  74   3                              COM2.RX_Cnt = 0;
+  75   3                      }
+  76   2              }
+  77   1      }
+  78          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    201    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      36
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
